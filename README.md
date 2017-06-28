@@ -1,9 +1,5 @@
 # libphonenumber-js
 
-[![npm version](https://img.shields.io/npm/v/libphonenumber-js.svg?style=flat-square)](https://www.npmjs.com/package/libphonenumber-js)
-[![npm downloads](https://img.shields.io/npm/dm/libphonenumber-js.svg?style=flat-square)](https://www.npmjs.com/package/libphonenumber-js)
-[![coverage](https://img.shields.io/coveralls/halt-hammerzeit/libphonenumber-js/master.svg?style=flat-square)](https://coveralls.io/r/halt-hammerzeit/libphonenumber-js?branch=master)
-
 A simpler (and smaller) rewrite of Google Android's famous `libphonenumber` library: easy phone number parsing and formatting in javascript.
 
 [See Demo](https://halt-hammerzeit.github.io/libphonenumber-js/)
@@ -20,7 +16,6 @@ One part of me was curious about how all this phone matching machinery worked, a
 
   * Pure javascript, doesn't require any 3rd party libraries
   * Metadata size is just about 75 KiloBytes while the original `libphonenumber` metadata size is about 200 KiloBytes
-  * Better "as you type" formatting (and also more iPhone-alike style)
   * Doesn't parse alphabetic phone numbers like `1-800-GOT-MILK` as we don't use telephone sets in the XXIst century that much (and we have phonebooks in your mobile phones)
   * Doesn't handle carrier codes: they're only used in Colombia and Brazil, and only when dialing within those countries from a mobile phone to a fixed line number (the locals surely already know those carrier codes by themselves)
   * Assumes all phone numbers being `format`ted are internationally diallable, because that's the only type of phone numbers users are supposed to be inputting on websites (no one inputs short codes, emergency telephone numbers like `911`, etc.)
@@ -34,24 +29,19 @@ One part of me was curious about how all this phone matching machinery worked, a
 ## Installation
 
 ```
-npm install libphonenumber-js --save
+npm install ipcortex/libphonenumber-js --save
 ```
 
 ## Usage
 
 ```js
-import { parse, format, asYouType } from 'libphonenumber-js'
+import { parse, format } from 'libphonenumber-js'
 
 parse('8 (800) 555 35 35', 'RU')
 // { country: 'RU', phone: '8005553535' }
 
 format('2133734253', 'US', 'International')
 // '+1-213-373-4253'
-
-new asYouType().input('+12133734')
-// '+1 213 373 4'
-new asYouType('US').input('2133734')
-// '(213) 373-4'
 ```
 
 ## Country code definition
@@ -146,35 +136,6 @@ The difference between using `parse()` and `isValidNumber()` for phone number va
 So, the general phone number rules for a country are mainly for phone number formatting: they dictate how different phone numbers (matching those general regular expressions) should be formatted. And `parse()` uses only those general regular expressions (as per the reference Google's `libphonenumber` implementation) to perform basic phone number validation. `isValidNumber()`, on the other hand, is all about validation, so it digs deeper into precise regular expressions (if they're included in metadata) for possible phone numbers in a given country. And that's the difference between them: `parse()` parses phone numbers and loosely validates them while `isValidNumber()` validates phone number precisely (provided the precise regular expressions are included in metadata).
 
 By default those precise regular expressions aren't included in metadata at all because that would cause metadata to grow twice in its size (the complete metadata would be about 200 KiloBytes). If anyone needs to generate custom metadata then it's very easy to do so: just follow the instructions provided in the [Customizing metadata](#customizing-metadata) section of this document (the option to look for is `--extended`, or relevant `--types`).
-
-### `class` asYouType(default_country_code)
-
-(aka `as_you_type`)
-
-Creates a formatter for partially entered phone number. The two-letter `default_country_code` is optional and, if specified, is gonna be the default country for the phone number being input (in case it's not an international one). The instance of this class has two methods:
-
- * `input(text)` — takes any text and appends it to the input; returns the formatted phone number
- * `reset()` — resets the input
-
-The instance of this class has also these fields:
-
-<!-- * `valid` — is the phone number being input a valid one already
-formatter.valid === true -->
- * `country` — a [country code](https://github.com/halt-hammerzeit/libphonenumber-js#country-code-definition) of the country this phone belongs to
- * `country_phone_code` — a phone code of the `country`
- * `national_number` — national number part (so far)
- * `template` — currently used phone number formatting template, where digits (and the plus sign, if present) are denoted by `x`-es
-
-```js
-new asYouType().input('+12133734') === '+1 213 373 4'
-new asYouType('US').input('2133734') === '(213) 373-4'
-
-const formatter = new asYouType()
-formatter.input('+1-213-373-4253') === '+1 213 373 4253'
-formatter.country === 'US'
-formatter.country_phone_code = '1'
-formatter.template === 'xx xxx xxx xxxx'
-```
 
 ### getPhoneCode(country_code)
 
